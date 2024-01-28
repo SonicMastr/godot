@@ -81,7 +81,7 @@
 #endif
 
 #include <EGL/egl.h>
-#include <EGL/eglext.h>
+//#include <EGL/eglext.h>
 #endif
 
 #if defined(MINGW_ENABLED) || defined(_MSC_VER)

@@ -30,6 +30,16 @@
 
 #include "context_egl_vita.h"
 
+#ifndef PVR_PSP2
+#define MEMORY_MAIN_THRESHOLD 0
+#define MEMORY_GFX_THRESHOLD 0
+#define MEMORY_PHYCONT_THRESHOLD 0
+#define MEMORY_CDGL_THRESHOLD 26 * 1024 * 1024
+
+static bool b_vglInitialized = 0;
+#endif
+
+#ifdef PVR_PSP2
 void ContextEGL_Vita::release_current() {
 	eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, context);
 }
@@ -37,13 +47,22 @@ void ContextEGL_Vita::release_current() {
 void ContextEGL_Vita::make_current() {
 	eglMakeCurrent(display, surface, surface, context);
 }
+#endif
 
 int ContextEGL_Vita::get_window_width() {
+#ifdef PVR_PSP2
 	return width;
+#else
+	return 960;
+#endif
 }
 
 int ContextEGL_Vita::get_window_height() {
+#ifdef PVR_PSP2
 	return height;
+#else
+	return 544;
+#endif
 }
 
 void ContextEGL_Vita::reset() {
@@ -52,13 +71,18 @@ void ContextEGL_Vita::reset() {
 }
 
 void ContextEGL_Vita::swap_buffers() {
+#ifdef PVR_PSP2
 	if (eglSwapBuffers(display, surface) != EGL_TRUE) {
 		cleanup();
 		initialize();
 	}
+#else
+	vglSwapBuffers(GL_FALSE);
+#endif
 };
 
 Error ContextEGL_Vita::initialize() {
+#ifdef PVR_PSP2
 	// Get an appropriate EGL framebuffer configuration
 	static const EGLint attributeList[] = {
 		EGL_RED_SIZE, 8,
@@ -127,9 +151,16 @@ Error ContextEGL_Vita::initialize() {
 
 	eglQuerySurface(display, surface, EGL_WIDTH, &width);
 	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-
+#else
+	if (!b_vglInitialized) {
+		vglInitExtended(0, 960, 544, 8 * 1024 * 1024, SCE_GXM_MULTISAMPLE_NONE);
+		vglUseExtraMem(GL_FALSE);
+		vglSetSemanticBindingMode(VGL_MODE_GLOBAL);
+		b_vglInitialized = 1;
+	}
+#endif
 	return OK;
-
+#ifdef PVR_PSP2
 _fail2:
 	eglDestroySurface(display, surface);
 	surface = NULL;
@@ -138,9 +169,11 @@ _fail1:
 	display = NULL;
 _fail0:
 	return ERR_UNCONFIGURED;
+#endif
 }
 
 void ContextEGL_Vita::cleanup() {
+#ifdef PVR_PSP2
 	if (display != EGL_NO_DISPLAY && surface != EGL_NO_SURFACE) {
 		eglDestroySurface(display, surface);
 		surface = EGL_NO_SURFACE;
@@ -155,6 +188,12 @@ void ContextEGL_Vita::cleanup() {
 		eglTerminate(display);
 		display = EGL_NO_DISPLAY;
 	}
+#else
+	if (b_vglInitialized) {
+		b_vglInitialized = 0;
+		vglEnd();
+	}
+#endif
 }
 
 ContextEGL_Vita::ContextEGL_Vita(bool gles) :

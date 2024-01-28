@@ -37,14 +37,21 @@
 #include <psp2/types.h>
 
 #include <EGL/egl.h> // EGL library
-
+#ifdef PVR_PSP2
 extern "C" {
 #include <gpu_es4/psp2_pvr_hint.h>
 }
-
+#else
+#define HAVE_GL_HEADERS
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#include <GLES2/gl2platform.h>
+#include <vitaGL.h>
+#endif
 class ContextEGL_Vita {
+#ifdef PVR_PSP2
 	Psp2NativeWindow window;
-
+#endif
 	EGLDisplay display;
 	EGLContext context;
 	EGLSurface surface;
@@ -56,10 +63,11 @@ class ContextEGL_Vita {
 	bool gles2_context;
 
 public:
+#ifdef PVR_PSP2
 	void release_current();
 
 	void make_current();
-
+#endif
 	int get_window_width();
 	int get_window_height();
 	void swap_buffers();

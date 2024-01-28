@@ -115,7 +115,7 @@ PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT
 #define glRenderbufferStorageMultisample glRenderbufferStorageMultisampleANGLE
 #define glFramebufferTexture2DMultisample glFramebufferTexture2DMultisampleANGLE
 
-#elif defined(VITA_ENABLED)
+#elif defined(VITA_ENABLED) && defined(PVR_PSP2)
 #include <GLES2/gl2ext.h>
 #define glRenderbufferStorageMultisample glRenderbufferStorageMultisampleIMG
 #define glFramebufferTexture2DMultisample glFramebufferTexture2DMultisampleIMG
@@ -534,7 +534,7 @@ void RasterizerStorageGLES2::texture_allocate(RID p_texture, int p_width, int p_
 			texture->images.resize(1);
 		} break;
 		case VS::TEXTURE_TYPE_EXTERNAL: {
-#if defined(ANDROID_ENABLED) || defined(VITA_ENABLED)
+#if defined(ANDROID_ENABLED) || (defined(VITA_ENABLED) && defined(PVR_PSP2))
 			texture->target = _GL_TEXTURE_EXTERNAL_OES;
 #else
 			texture->target = GL_TEXTURE_2D;
@@ -5039,6 +5039,8 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 		rt->height = MIN(rt->height, config.max_viewport_dimensions[1]);
 	}
 
+	printf("Allocating Rendertarget %dx%d\n", rt->width, rt->height);
+
 	GLuint color_internal_format;
 	GLuint color_format;
 	GLuint color_type = GL_UNSIGNED_BYTE;
@@ -5155,7 +5157,7 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 	/* BACK FBO */
 	/* For MSAA */
 
-#ifndef JAVASCRIPT_ENABLED
+#if !defined(JAVASCRIPT_ENABLED) && defined(PVR_PSP2)
 	if (rt->msaa >= VS::VIEWPORT_MSAA_2X && rt->msaa <= VS::VIEWPORT_MSAA_16X && config.multisample_supported) {
 		rt->multisample_active = true;
 
@@ -5268,7 +5270,11 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 	}
 
 	// Allocate mipmap chains for post_process effects
+#if (defined(VITA_ENABLED) && !defined(PVR_PSP2))
+	if (0) {
+#else
 	if (!rt->flags[RasterizerStorage::RENDER_TARGET_NO_3D] && rt->width >= 2 && rt->height >= 2) {
+#endif
 		for (int i = 0; i < 2; i++) {
 			ERR_FAIL_COND(rt->mip_maps[i].sizes.size());
 			int w = rt->width;
@@ -6283,6 +6289,9 @@ void RasterizerStorageGLES2::initialize() {
 	// S3TC it will crash trying to load these textures, as they are not exported in the APK. This is a simple way
 	// to prevent Android devices trying to load S3TC, by faking lack of hardware support.
 #if defined(ANDROID_ENABLED) || defined(IPHONE_ENABLED) || defined(VITA_ENABLED)
+#ifndef PVR_PSP2
+	config.support_npot_repeat_mipmap = false;
+#endif
 	config.s3tc_supported = false;
 #endif
 
@@ -6446,6 +6455,9 @@ void RasterizerStorageGLES2::initialize() {
 
 	//picky requirements for these
 	config.support_shadow_cubemaps = config.support_depth_texture && config.support_write_depth && config.support_depth_cubemaps;
+#if (defined(VITA_ENABLED) && !defined(PVR_PSP2))
+	config.support_shadow_cubemaps = false;
+#endif
 	if (!config.support_shadow_cubemaps) {
 		print_verbose("OmniLight cubemap shadows are not supported by this GPU. Falling back to dual paraboloid shadows for all omni lights (faster but less precise).");
 	}

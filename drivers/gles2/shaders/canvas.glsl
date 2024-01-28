@@ -1,6 +1,9 @@
 /* clang-format off */
 [vertex]
 
+#define texture2DLod(img, coord, lod) texture2D(img, coord, lod) // I'll pretend like I can't read - Jaylon
+#define textureCubeLod(img, coord, lod) textureCube(img, coord, lod)
+
 #ifdef USE_GLES_OVER_GL
 #define lowp
 #define mediump

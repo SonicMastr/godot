@@ -94,6 +94,7 @@ def configure(env):
             "-DPOSH_OS_VITA",
             '-DPOSH_OS_STRING=\\"vita\\"',
             "-D__psp2__",
+#            "-DPVR_PSP2",
         ]
     )
 
@@ -144,6 +145,16 @@ def configure(env):
     env.Append(
         LIBS=[
             "dl",
+            "vitaGL",
+            "vitashark",
+            "SceShaccCgExt",
+            "SceShaccCg_stub",
+            "SceGxm_stub",
+            "mathneon",
+            "SceKernelDmacMgr_stub",
+            "SceRazorCapture_stub",
+            "SceRazorHud_stub",
+            "SceCommonDialog_stub",
             "taihen_stub",
             "SceLibKernel_stub",
             "SceKernelThreadMgr_stub",
@@ -169,9 +180,9 @@ def configure(env):
             "zstd",
             "pcre2-32",
             "theora",
-            "-llibgpu_es4_ext_stub.a",
-            "-llibIMGEGL_stub.a",
-            "-llibGLESv2_stub.a",
+            #"-llibgpu_es4_ext_stub.a",
+            #"-llibIMGEGL_stub.a",
+            #"-llibGLESv2_stub.a",
         ]
     )
     print(env.get("LIBS"))
