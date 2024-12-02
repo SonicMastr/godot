@@ -673,6 +673,14 @@ uint64_t OS_Vita::get_system_time_msecs() const {
 	return longtime;
 }
 
+double OS_Vita::get_subsecond_unix_time() const {
+	uint64_t unixTime;
+	SceDateTime sceDateTimeUtc;
+	sceRtcGetCurrentClockUtc(&sceDateTimeUtc);
+	sceRtcConvertDateTimeToTime64_t(&sceDateTimeUtc, &unixTime);
+	return (double)unixTime + (double(sceDateTimeUtc.microsecond) / 1000000.0);
+}
+
 void OS_Vita::delay_usec(uint32_t p_usec) const {
 	sceKernelDelayThread(p_usec);
 }
